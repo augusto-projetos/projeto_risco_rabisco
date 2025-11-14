@@ -1,176 +1,212 @@
-/* Este é o CSS para a página de produtos.
-  Ele é carregado DEPOIS do loja.css, então ele
-  pode usar as variáveis de cor (--cor-principal) que o loja.css definiu.
-*/
+/*
+ * CSS específico para a página de Produtos (produtos.php)
+ */
 
-/* Título da Página (Ex: "Nosso Catálogo de Produtos") */
+/* 1. Título da Página
+--------------------------------------------------- */
 .titulo-pagina {
-    text-align: center;
-    font-size: 2.5rem;
+    font-size: 1.8rem;
     font-weight: 800;
-    color: var(--cor-principal);
-    margin-bottom: 2rem;
+    color: var(--cor-texto-principal);
+    margin-bottom: 1.5rem;
 }
 
-/* O Container Grid que segura todos os cards */
+/* 2. Container da Grade de Produtos
+--------------------------------------------------- */
 .container-produtos {
     display: grid;
-    /* Este é o grid responsivo:
-      - Tente encaixar colunas de 280px.
-      - Se não couber, quebre a linha.
-      - 1fr = Ocupa o espaço que sobrar.
+    /* Grid responsivo automático: 
+      - Tenta criar colunas de no mínimo 280px.
+      - 'auto-fit' faz com que ele preencha o espaço.
+      - '1fr' faz com que as colunas se estiquem para 
+        ocupar o espaço igualmente.
     */
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem; /* Espaço entre os cards */
-    padding: 0 1rem; /* Não deixa os cards colarem na borda */
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
 }
 
-/* O Card Individual de cada Produto */
+/* 3. Card Individual do Produto
+--------------------------------------------------- */
 .card-produto {
-    background-color: #ffffff;
-    border-radius: var(--raio-borda);
-    box-shadow: var(--sombra);
-    overflow: hidden; /* Garante que a imagem não vaze */
+    background-color: var(--cor-branca);
+    border-radius: 8px;
+    box-shadow: var(--sombra-padrao);
     
-    /* Mágica do Flex: Faz o card crescer e empurra o rodapé (botões) para baixo */
+    /* Usamos flex-column para organizar o card */
     display: flex;
     flex-direction: column;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
+    overflow: hidden; /* Garante que a imagem não vaze */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card-produto:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 }
 
-/* Área da Imagem */
+/* 4. Imagem do Card
+--------------------------------------------------- */
 .card-produto-imagem {
-    /* Força a imagem a ser quadrada */
-    aspect-ratio: 1 / 1; 
     width: 100%;
+    /* Proporção 1:1 (quadrada) */
+    aspect-ratio: 1 / 1; 
+    overflow: hidden;
+    border-bottom: 1px solid var(--cor-cinza-fundo);
 }
 
 .card-produto-imagem img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Garante que a imagem cubra o espaço sem distorcer */
+    object-fit: cover; /* Garante que a imagem cubra a área */
 }
 
-/* Área de Informação (Nome, Descrição, Preço) */
+/* 5. Informações do Card (Nome, Desc, Preço)
+--------------------------------------------------- */
 .card-produto-info {
     padding: 1rem;
-    /* Cresce para empurrar os botões para baixo */
+    /* Empurra os botões para baixo */
     flex-grow: 1; 
 }
 
 .card-produto-info h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: #333;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--cor-texto-principal);
+    margin-bottom: 0.25rem;
 }
 
 .card-produto-info .descricao {
     font-size: 0.85rem;
-    color: #666;
-    margin-bottom: 1rem;
-    /* Limita a descrição para 2 linhas */
+    color: var(--cor-texto-secundario);
+    margin-bottom: 0.75rem;
+    
+    /* Limita a descrição a 2 linhas */
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .card-produto-info .preco {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: 800;
     color: var(--cor-principal);
 }
 
-/* Área das Ações (Botões de Favorito e Orçamento) */
+/* 6. Ações do Card (Botões)
+--------------------------------------------------- */
 .card-produto-acoes {
-    padding: 1rem;
-    border-top: 1px solid var(--cor-borda);
-    display: grid;
-    gap: 0.5rem; /* Espaço entre os dois formulários */
+    padding: 0 1rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
-/* Formulário do Orçamento (Input + Botão) */
-.form-orcamento {
-    display: flex; /* Alinha o input e o botão lado a lado */
-}
-
-.input-quantidade {
-    width: 60px;
-    padding: 0.75rem 0.5rem;
-    text-align: center;
-    border: 1px solid var(--cor-borda);
-    border-radius: var(--raio-borda) 0 0 var(--raio-borda); /* Arredonda só a esquerda */
-    font-size: 1rem;
-    font-weight: 600;
-    
-    /* Remove as setas feias do input number */
-    -moz-appearance: textfield;
-    appearance: none;
-}
-.input-quantidade::-webkit-outer-spin-button,
-.input-quantidade::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-/* Estilo Base dos Botões */
-.btn-orcamento,
+/* Botão Favorito */
 .btn-favorito {
     width: 100%;
-    padding: 0.75rem 1rem;
-    border: none;
-    border-radius: var(--raio-borda);
+    padding: 10px;
+    background-color: var(--cor-cinza-fundo);
+    color: var(--cor-texto-secundario);
+    border: 1px solid var(--cor-cinza-borda);
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem; /* Espaço entre ícone e texto */
-    transition: background-color 0.2s ease, color 0.2s ease;
+    gap: 8px;
+    transition: background-color 0.2s ease;
 }
-
-/* Botão de Orçamento (Principal) */
-.btn-orcamento {
-    background-color: var(--cor-principal);
-    color: white;
-    /* "Cola" no input, arredondando só a direita */
-    border-radius: 0 var(--raio-borda) var(--raio-borda) 0;
-    flex-grow: 1; /* Ocupa o espaço restante */
-}
-
-.btn-orcamento:hover {
-    background-color: #6a0000; /* Tom mais escuro */
-}
-
-/* Botão de Favorito (Secundário) */
-.btn-favorito {
-    background-color: transparent;
-    color: #555;
-    border: 1px solid var(--cor-borda);
-}
-
 .btn-favorito:hover {
-    background-color: #f5f5f5;
+    background-color: #e9e9e9;
 }
-
-/* Estilo do Botão Favorito quando DESABILITADO */
 .btn-favorito:disabled {
-    background-color: #f0f0f0;
+    background-color: var(--cor-cinza-fundo);
     color: var(--cor-principal);
-    border-color: transparent;
     cursor: not-allowed;
 }
+.btn-favorito:disabled i {
+    color: var(--cor-principal);
+}
 
-.btn-favorito:disabled .fa-heart {
-    /* O ícone fica sólido (vermelho) */
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
+/* Formulário e Botão de Orçamento */
+.form-orcamento {
+    display: flex;
+    gap: 8px;
+}
+.form-orcamento .input-quantidade {
+    width: 50px;
+    padding: 10px;
+    text-align: center;
+    border: 1px solid var(--cor-cinza-borda);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+}
+.btn-orcamento {
+    flex-grow: 1; /* Ocupa o resto do espaço */
+    padding: 10px;
+    background-color: var(--cor-principal);
+    color: var(--cor-branca);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s ease;
+}
+.btn-orcamento:hover {
+    background-color: var(--cor-principal-hover);
+}
+
+
+/* 7. ***** NOVO: Estilo da Barra de Pesquisa *****
+--------------------------------------------------- */
+.container-pesquisa {
+    position: relative;
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+.container-pesquisa i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+}
+
+#search-bar {
+    width: 100%;
+    padding: 12px 12px 12px 40px; /* Espaço para o ícone */
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    border: 1px solid var(--cor-cinza-borda);
+    border-radius: 6px;
+    background-color: var(--cor-branca);
+}
+
+#search-bar:focus {
+    outline: none;
+    border-color: var(--cor-principal);
+    box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.1);
+}
+
+/* 8. ***** NOVO: Mensagem de Busca Vazia *****
+--------------------------------------------------- */
+.mensagem-busca-vazia {
+    display: none; /* Escondido por padrão */
+    width: 100%;
+    text-align: center;
+    padding: 2rem;
+    font-weight: 500;
+    color: var(--cor-texto-secundario);
+    
+    /* Ocupa todas as colunas do grid */
+    grid-column: 1 / -1; 
 }

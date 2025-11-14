@@ -226,24 +226,83 @@
     }
 }
 
+/* * NOVA SEÇÃO RESPONSIVA PARA CELULAR
+ * Substitui a rolagem horizontal por um layout de card empilhado.
+ */
 @media (max-width: 768px) {
-    /* Tabela vira "rolável" horizontalmente */
-    .tabela-itens {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
     
+    /* 1. O container da "tabela" vira transparente */
+    .tabela-itens {
+        background-color: transparent;
+        box-shadow: none;
+        border-radius: 0;
+    }
+
+    /* 2. Esconde o cabeçalho "Produto, Preço..." */
+    .cabecalho-tabela {
+        display: none;
+    }
+
+    /* 3. Transforma cada LINHA em um CARD */
     .linha-item {
-        /* Força a tabela a ter uma largura mínima */
-        min-width: 650px; 
-    }
-
-    .item-produto span {
-        white-space: nowrap; /* Impede que o nome quebre a linha */
-    }
-
-    /* Ajuste de padding */
-    .cabecalho-tabela, .linha-item {
+        display: grid;
+        /* Layout de 2 colunas */
+        grid-template-columns: 1fr 1fr;
+        /* Define as "áreas" que cada item vai ocupar */
+        grid-template-areas:
+            "produto produto"  /* Produto ocupa a linha 1 inteira */
+            "preco   subtotal" /* Linha 2 */
+            "qtd     acao"     /* Linha 3 */
+        ;
+        gap: 1.2rem 1rem;
+        
+        /* Estilo do Card */
+        background-color: var(--cor-branca);
+        box-shadow: var(--sombra-padrao);
+        border-radius: 8px;
+        margin-bottom: 1rem;
         padding: 1rem;
+        
+        /* Reseta estilos da tabela desktop */
+        min-width: 0; 
+        border-bottom: none; 
+    }
+
+    /* 4. Mapeia os itens para as áreas do grid */
+    .item-produto { grid-area: produto; }
+    .item-preco   { grid-area: preco; }
+    .item-subtotal{ grid-area: subtotal; }
+    .item-qtd     { grid-area: qtd; }
+    .item-acao    { grid-area: acao; }
+
+    /* 5. Adiciona Rótulos (pois o cabeçalho sumiu) */
+    .item-preco::before,
+    .item-subtotal::before {
+        content: attr(data-label); /* Puxa o rótulo (precisamos adicionar no HTML) */
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--cor-texto-secundario);
+        margin-bottom: 4px;
+    }
+
+    /* Adicionando rótulos via CSS (Forma mais simples) */
+    .item-preco::before    { content: 'Preço Unit.'; }
+    .item-subtotal::before { content: 'Subtotal'; }
+
+    /* 6. Alinhamento dos itens no Card */
+    .item-preco {
+        text-align: left;
+    }
+    .item-subtotal {
+        text-align: right;
+    }
+    .form-atualizar-qtd {
+        justify-content: flex-start; /* Alinha à esquerda */
+    }
+    .item-acao {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end; /* Alinha à direita */
     }
 }

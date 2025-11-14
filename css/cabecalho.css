@@ -144,7 +144,6 @@ a {
     position: absolute;
     top: 120%; /* Abaixo do botão */
     right: 0;
-    
     background-color: var(--cor-branca);
     border: 1px solid var(--cor-cinza-borda);
     border-radius: 8px;
@@ -152,11 +151,28 @@ a {
     min-width: 180px;
     overflow: hidden; /* Para os links terem borda arredondada */
     z-index: 1100;
+
+    /* ***** MUDANÇA: Adicionando animação de entrada ***** */
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    visibility: hidden;
 }
 
-/* Mágica do CSS: Mostrar o menu ao passar o mouse */
-.dropdown:hover .dropdown-menu {
+/* ***** MUDANÇA: Removemos a regra do :hover ***** */
+
+/* ***** MUDANÇA: Adicionamos a regra do .active ***** */
+/* Mágica do JS: Mostrar o menu ao CLICAR */
+.dropdown.active .dropdown-menu {
     display: block;
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+/* Feedback visual de que o botão foi clicado */
+.dropdown-toggle.active {
+    background-color: var(--cor-cinza-fundo);
 }
 
 .dropdown-menu a {
@@ -284,15 +300,21 @@ a {
     }
 
     /* Mostra o menu dropdown (Meu Perfil, Sair) direto */
-    .dropdown:hover .dropdown-menu {
-        display: block; /* Remove a regra de hover */
-    }
+    /* ***** MUDANÇA: Removemos a regra de hover aqui também ***** */
+    /* .dropdown:hover .dropdown-menu {
+        display: block; 
+    } */
     .dropdown-menu {
         display: block;
         position: static; /* Remove flutuação */
         box-shadow: none;
         border: none;
         min-width: 100%;
+        
+        /* ***** MUDANÇA: Removemos a animação do mobile ***** */
+        opacity: 1;
+        transform: none;
+        visibility: visible;
     }
     
     .dropdown-menu a {

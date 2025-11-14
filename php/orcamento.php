@@ -90,8 +90,7 @@ $conn->close(); // Fechamos a conexão aqui, pois já pegamos os dados
                         <div class="item-qtd">
                             <form action="acoes/atualizar_orcamento.php" method="POST" class="form-atualizar-qtd">
                                 <input type="hidden" name="id_produto" value="<?php echo $item['id']; ?>">
-                                <input type="number" name="quantidade" value="<?php echo $item['quantidade']; ?>" min="1" max="99" class="input-quantidade">
-                                <button type="submit" class="btn-atualizar" aria-label="Atualizar quantidade">
+                                <input type="number" name="quantidade" value="<?php echo $item['quantidade']; ?>" min="0" max="99" class="input-quantidade"> <button type="submit" class="btn-atualizar" aria-label="Atualizar quantidade">
                                     <i class="fa-solid fa-check"></i>
                                 </button>
                             </form>
@@ -102,9 +101,9 @@ $conn->close(); // Fechamos a conexão aqui, pois já pegamos os dados
                         </div>
 
                         <div class="item-acao">
-                            <form action="acoes/remover_orcamento.php" method="POST">
+                            <form action="acoes/atualizar_orcamento.php" method="POST"> 
                                 <input type="hidden" name="id_produto" value="<?php echo $item['id']; ?>">
-                                <button type="submit" class="btn-remover" aria-label="Remover item">
+                                <input type="hidden" name="quantidade" value="0"> <button type="submit" class="btn-remover" aria-label="Remover item">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </form>

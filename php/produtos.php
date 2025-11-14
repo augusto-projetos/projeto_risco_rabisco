@@ -1,20 +1,20 @@
 <?php
-// 1. Incluir o cabeçalho
+// 1. Definir o CSS específico desta página
+$pagina_css = '../css/produtos.css';
+
+// 2. Incluir o cabeçalho
 // O 'cabecalho.php' já faz 3 coisas:
 // 1. Inicia a sessão (session_start())
 // 2. Inclui a conexão (require_once 'conexao.php')
 // 3. Verifica se o usuário está logado (protege a página)
-$pagina_css = '../css/produtos.css';
 include 'cabecalho.php';
 
-// 2. Buscar os produtos no banco de dados
+// 3. Buscar os produtos no banco de dados
 // A conexão $conn já foi criada dentro do 'cabecalho.php'
 $sql = "SELECT id, nome, descricao, preco, imagem FROM produtos ORDER BY nome ASC";
 $resultado = $conn->query($sql);
 
-// Vamos também buscar os favoritos e o carrinho deste usuário
-// para poder marcar os botões ("favoritado" ou "no carrinho")
-// Isso é um bônus de performance, para não fazer 10 queries dentro do loop.
+// 4. Buscar favoritos e carrinho do usuário (Bônus de Performance)
 $id_usuario_logado = $_SESSION['id_usuario'];
 
 // Busca IDs dos favoritos
@@ -43,101 +43,117 @@ $stmt_carrinho->close();
 
 ?>
 
+<!-- Título da Página -->
 <h1 class="titulo-pagina">Nosso Catálogo de Produtos</h1>
 
-    <!-- Container para os cards dos produtos -->
-    <div class="container-produtos">
+<!-- Barra de Pesquisa -->
+<div class="container-pesquisa">
+    <i class="fa-solid fa-search"></i>
+    <!-- Usamos o ID 'search-bar' que o seu script original procurava -->
+    <input type="text" id="search-bar" placeholder="Buscar produtos pelo nome...">
+</div>
 
-        <?php
-        // 3. O Loop para exibir os produtos
-        if ($resultado->num_rows > 0) {
-            // Itera sobre cada linha (produto) retornada do banco
-            while ($produto = $resultado->fetch_assoc()) {
+<!-- Container para os cards dos produtos -->
+<div class="container-produtos">
+
+    <?php
+    // 5. O Loop para exibir os produtos
+    if ($resultado->num_rows > 0) {
+        // Itera sobre cada linha (produto) retornada do banco
+        while ($produto = $resultado->fetch_assoc()) {
+            
+            // Prepara variáveis para o HTML
+            $id_produto = $produto['id'];
+            $nome_produto = htmlspecialchars($produto['nome']);
+            $descricao_produto = htmlspecialchars($produto['descricao']);
+            $preco_produto = "R$ " . number_format($produto['preco'], 2, ',', '.');
+            $imagem_produto = htmlspecialchars($produto['imagem']);
+
+            $esta_favoritado = isset($favoritos_set[$id_produto]);
+            $no_carrinho_qtd = $carrinho_set[$id_produto] ?? 0;
+
+            ?>
+
+            <!-- Card Individual do Produto (HTML dinâmico) -->
+            <!-- Note a classe 'card-produto' que o JS vai procurar -->
+            <div class="card-produto">
                 
-                // Prepara variáveis para o HTML
-                $id_produto = $produto['id'];
-                $nome_produto = htmlspecialchars($produto['nome']);
-                $descricao_produto = htmlspecialchars($produto['descricao']);
-                $preco_produto = "R$ " . number_format($produto['preco'], 2, ',', '.');
-                $imagem_produto = htmlspecialchars($produto['imagem']);
-
-                $esta_favoritado = isset($favoritos_set[$id_produto]);
-                $no_carrinho_qtd = $carrinho_set[$id_produto] ?? 0;
-
-                ?>
-
-                <div class="card-produto">
-                    
-                    <!-- Imagem -->
-                    <div class="card-produto-imagem">
-                        <img src="<?php echo $imagem_produto; ?>" alt="<?php echo $nome_produto; ?>">
-                    </div>
-
-                    <!-- Informações -->
-                    <div class="card-produto-info">
-                        <h3><?php echo $nome_produto; ?></h3>
-                        
-                        <?php if (!empty($descricao_produto)): ?>
-                            <p class="descricao"><?php echo $descricao_produto; ?></p>
-                        <?php endif; ?>
-
-                        <div class="preco"><?php echo $preco_produto; ?></div>
-                    </div>
-
-                    <!-- Ações (Botões) -->
-                    <div class="card-produto-acoes">
-                        
-                        <!-- Formulário de Favorito -->
-                        <!-- Nota: Vamos ter que criar a pasta 'acoes' e os arquivos dentro dela -->
-                        <form action="acoes/adicionar_favorito.php" method="POST">
-                            <input type="hidden" name="id_produto" value="<?php echo $id_produto; ?>">
-                            
-                            <!-- Lógica para mudar o botão se já estiver favoritado -->
-                            <?php if ($esta_favoritado): ?>
-                                <!-- (Opcional: Mudar para um botão de "Remover") -->
-                                <button type="submit" class="btn-favorito" disabled>
-                                    <i class="fa-solid fa-heart"></i> Já Favoritado
-                                </button>
-                            <?php else: ?>
-                                <button type="submit" class="btn-favorito">
-                                    <i class="fa-regular fa-heart"></i> Favoritar
-                                </button>
-                            <?php endif; ?>
-                        </form>
-
-                        <!-- Formulário de Orçamento -->
-                        <form action="acoes/adicionar_orcamento.php" method="POST" class="form-orcamento">
-                            <input type="hidden" name="id_produto" value="<?php echo $id_produto; ?>">
-                            
-                            <!-- Input de Quantidade -->
-                            <input type="number" name="quantidade" value="1" min="1" max="99" class="input-quantidade">
-                            
-                            <!-- Botão de Adicionar -->
-                            <button type="submit" class="btn-orcamento">
-                                <!-- Lógica para mudar o texto se já estiver no carrinho -->
-                                <?php if ($no_carrinho_qtd > 0): ?>
-                                    <i class="fa-solid fa-cart-plus"></i> Adicionar + (<?php echo $no_carrinho_qtd; ?>)
-                                <?php else: ?>
-                                    <i class="fa-solid fa-cart-shopping"></i> Orçar
-                                <?php endif; ?>
-                            </button>
-                        </form>
-
-                    </div>
+                <!-- Imagem -->
+                <div class="card-produto-imagem">
+                    <img src="<?php echo $imagem_produto; ?>" alt="<?php echo $nome_produto; ?>">
                 </div>
 
-                <?php
-            } // Fim do while
-        } else {
-            // Caso não tenha produtos cadastrados
-            echo "<p>Nenhum produto encontrado no catálogo.</p>";
-        }
-        // 4. Fechar a conexão
-        $conn->close();
-        ?>
+                <!-- Informações -->
+                <div class="card-produto-info">
+                    <!-- O 'h3' que o JS vai procurar -->
+                    <h3><?php echo $nome_produto; ?></h3>
+                    
+                    <?php if (!empty($descricao_produto)): ?>
+                        <p class="descricao"><?php echo $descricao_produto; ?></p>
+                    <?php endif; ?>
 
-    </div>
+                    <div class="preco"><?php echo $preco_produto; ?></div>
+                </div>
 
+                <!-- Ações (Botões) -->
+                <div class="card-produto-acoes">
+                    
+                    <!-- Formulário de Favorito -->
+                    <form action="acoes/adicionar_favorito.php" method="POST">
+                        <input type="hidden" name="id_produto" value="<?php echo $id_produto; ?>">
+                        
+                        <?php if ($esta_favoritado): ?>
+                            <button type="submit" class="btn-favorito" disabled>
+                                <i class="fa-solid fa-heart"></i> Já Favoritado
+                            </button>
+                        <?php else: ?>
+                            <button type="submit" class="btn-favorito">
+                                <i class="fa-regular fa-heart"></i> Favoritar
+                            </button>
+                        <?php endif; ?>
+                    </form>
+
+                    <!-- Formulário de Orçamento -->
+                    <form action="acoes/adicionar_orcamento.php" method="POST" class="form-orcamento">
+                        <input type="hidden" name="id_produto" value="<?php echo $id_produto; ?>">
+                        
+                        <input type="number" name="quantidade" value="1" min="1" max="99" class="input-quantidade">
+                        
+                        <button type="submit" class="btn-orcamento">
+                            <?php if ($no_carrinho_qtd > 0): ?>
+                                <i class="fa-solid fa-cart-plus"></i> Adicionar + (<?php echo $no_carrinho_qtd; ?>)
+                            <?php else: ?>
+                                <i class="fa-solid fa-cart-shopping"></i> Orçar
+                            <?php endif; ?>
+                        </button>
+                    </form>
+
+                </div> <!-- Fim .card-produto-acoes -->
+            </div> <!-- Fim .card-produto -->
+
+            <?php
+        } // Fim do while
+    } else {
+        // Caso não tenha produtos cadastrados
+        echo "<p>Nenhum produto encontrado no catálogo.</p>";
+    }
+    // 6. Fechar a conexão
+    $conn->close();
+    ?>
+
+    <!-- Mensagem para quando a busca não acha nada -->
+    <p id="nenhum-produto-encontrado" class="mensagem-busca-vazia">
+        Nenhum produto encontrado com esse nome.
+    </p>
+
+</div> <!-- Fim .container-produtos -->
+
+<script src="../js/pesquisa.js"></script>
+
+<?php
+// 7. Fechamento do HTML
+// O </main> e </body> </html> são fechados aqui
+?>
 </main>
 </body>
 </html>
