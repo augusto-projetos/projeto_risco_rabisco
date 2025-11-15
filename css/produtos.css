@@ -16,17 +16,9 @@
 .container-produtos {
     display: grid;
     
-    /* * ***** A MUDANÇA ESTÁ AQUI *****
-     * Trocamos 'minmax(260px, 1fr)' por um tamanho fixo '280px'.
-     * '1fr' fazia o card esticar. '280px' impede isso.
-     */
+    /* Regra para Desktop (Centralizado) */
     grid-template-columns: repeat(auto-fit, 280px);
     gap: 1.5rem;
-
-    /*
-     * ***** E AQUI *****
-     * Isso vai centralizar a grade inteira, seja com 4 ou 1 produto.
-     */
     justify-content: center;
 }
 
@@ -214,4 +206,56 @@
     
     /* Ocupa todas as colunas do grid */
     grid-column: 1 / -1; 
+}
+
+
+/* 9. RESPONSIVIDADE (Mobile)
+--------------------------------------------------- */
+@media (max-width: 600px) {
+    
+    .titulo-pagina {
+        font-size: 1.5rem; /* Título um pouco menor */
+    }
+
+    .container-produtos {
+        /* Força 2 colunas e remove a regra de '280px' */
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem; /* Espaço menor entre os cards */
+    }
+
+    /* Ajustes finos para o card caber em telas pequenas */
+    .card-produto-info {
+        padding: 0.75rem;
+    }
+    
+    .card-produto-info h3 {
+        font-size: 0.9rem; /* Fonte menor */
+    }
+
+    .card-produto-info .preco {
+        font-size: 1.1rem; /* Preço menor */
+    }
+
+    .card-produto-acoes {
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+
+    /* Ajustes nos botões */
+    .btn-favorito,
+    .btn-orcamento,
+    .form-orcamento .input-quantidade {
+        padding: 8px;
+        font-size: 0.8rem;
+        gap: 4px;
+    }
+
+    .form-orcamento .input-quantidade {
+        width: 40px;
+    }
+
+    .btn-orcamento i,
+    .btn-favorito i {
+        font-size: 0.9rem; /* Ícone menor */
+    }
 }

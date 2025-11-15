@@ -132,6 +132,10 @@ a {
 .dropdown-toggle:hover {
     background-color: var(--cor-cinza-fundo);
 }
+/* Feedback visual de que o botão foi clicado */
+.dropdown-toggle.active {
+    background-color: var(--cor-cinza-fundo);
+}
 
 .dropdown-toggle i {
     color: var(--cor-principal);
@@ -151,28 +155,18 @@ a {
     min-width: 180px;
     overflow: hidden; /* Para os links terem borda arredondada */
     z-index: 1100;
-
-    /* ***** MUDANÇA: Adicionando animação de entrada ***** */
     opacity: 0;
     transform: translateY(10px);
     transition: opacity 0.2s ease, transform 0.2s ease;
     visibility: hidden;
 }
 
-/* ***** MUDANÇA: Removemos a regra do :hover ***** */
-
-/* ***** MUDANÇA: Adicionamos a regra do .active ***** */
 /* Mágica do JS: Mostrar o menu ao CLICAR */
 .dropdown.active .dropdown-menu {
     display: block;
     opacity: 1;
     transform: translateY(0);
     visibility: visible;
-}
-
-/* Feedback visual de que o botão foi clicado */
-.dropdown-toggle.active {
-    background-color: var(--cor-cinza-fundo);
 }
 
 .dropdown-menu a {
@@ -208,7 +202,6 @@ a {
 }
 
 /* 9. Container Principal do Conteúdo */
-/* (O <main> que abrimos no cabecalho.php) */
 .conteudo-principal {
     padding: 2rem;
     /* Centraliza o conteúdo com uma largura máxima */
@@ -300,18 +293,12 @@ a {
     }
 
     /* Mostra o menu dropdown (Meu Perfil, Sair) direto */
-    /* ***** MUDANÇA: Removemos a regra de hover aqui também ***** */
-    /* .dropdown:hover .dropdown-menu {
-        display: block; 
-    } */
     .dropdown-menu {
         display: block;
         position: static; /* Remove flutuação */
         box-shadow: none;
         border: none;
         min-width: 100%;
-        
-        /* ***** MUDANÇA: Removemos a animação do mobile ***** */
         opacity: 1;
         transform: none;
         visibility: visible;
@@ -325,4 +312,34 @@ a {
     .conteudo-principal {
         padding: 1.5rem 1rem; /* Menos padding lateral no celular */
     }
+}
+
+
+/* 12. BOTÃO "VOLTAR AO TOPO"
+--------------------------------------------------- */
+.btn-voltar-ao-topo {
+    display: none; /* Começa invisível - JS vai mudar para 'grid' */
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 1000;
+    
+    /* Estilo */
+    width: 45px;
+    height: 45px;
+    background-color: var(--cor-principal);
+    color: var(--cor-branca);
+    border-radius: 50%;
+    
+    /* Centraliza o ícone */
+    place-items: center;
+    font-size: 1.1rem;
+    
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-voltar-ao-topo:hover {
+    background-color: var(--cor-principal-hover);
+    transform: translateY(-2px);
 }

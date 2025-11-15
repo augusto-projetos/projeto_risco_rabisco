@@ -1,32 +1,22 @@
 // 1. Espera o HTML ser carregado antes de rodar o script
 document.addEventListener("DOMContentLoaded", () => {
 
-    // --- 1. LÓGICA DO MENU MOBILE (O seu código, intocado) ---
+    // --- 1. LÓGICA DO MENU MOBILE ---
 
-    // Seleciona os dois elementos que vamos usar
     const btnMobile = document.getElementById("btn-mobile");
     const containerNav = document.getElementById("container-nav");
 
-    // Verifica se os elementos realmente existem
     if (btnMobile && containerNav) {
         
-        // Adiciona a função de "clique" no botão mobile
         btnMobile.addEventListener("click", () => {
-            
-            // A MÁGICA:
-            // Adiciona ou remove a classe 'active' do container
             containerNav.classList.toggle("active");
-
-            // Bônus (Acessibilidade):
-            // Avisa leitores de tela se o menu está aberto ou fechado
             const estaAtivo = containerNav.classList.contains("active");
             btnMobile.setAttribute("aria-expanded", estaAtivo);
         });
     }
 
-    // --- 2. NOVA LÓGICA DO DROPDOWN DESKTOP (O que você pediu) ---
+    // --- 2. LÓGICA DO DROPDOWN DESKTOP ---
 
-    // Seleciona o botão "Olá..." e o 'pai' dele (o <div> .dropdown)
     const dropdownButton = document.querySelector(".dropdown-toggle");
     const dropdown = document.querySelector(".menu-usuario .dropdown");
 
@@ -34,28 +24,53 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // A. Ação de CLICAR NO BOTÃO "Olá..."
         dropdownButton.addEventListener("click", (e) => {
-            // A MÁGICA:
-            // Adiciona/Remove a classe 'active' do elemento .dropdown
-            // (O CSS que fizemos vai ler essa classe para mostrar o menu)
             dropdown.classList.toggle("active");
-            
-            // Bônus (Acessibilidade):
             const estaAtivo = dropdown.classList.contains("active");
             dropdownButton.setAttribute("aria-expanded", estaAtivo);
         });
 
         // B. Ação de CLICAR FORA (para fechar o menu)
-        // Adicionamos um 'click' na página inteira
         document.addEventListener("click", (e) => {
-            
-            // Se o menu estiver aberto E o clique foi FORA do .dropdown
             if (dropdown.classList.contains("active") && !dropdown.contains(e.target)) {
-                
-                // Fecha o menu
                 dropdown.classList.remove("active");
-                // Reseta a acessibilidade
                 dropdownButton.setAttribute("aria-expanded", "false");
             }
+        });
+    }
+
+
+    // --- 3. LÓGICA DO BOTÃO "VOLTAR AO TOPO" ---
+
+    // Pega o botão que criamos no cabecalho.php
+    const btnTopo = document.getElementById("btn-voltar-ao-topo");
+
+    if (btnTopo) {
+        
+        // A. Lógica de MOSTRAR/ESCONDER ao rolar
+        window.addEventListener("scroll", () => {
+            // Pega a distância da rolagem (funciona em todos os navegadores)
+            const scrollDist = document.body.scrollTop || document.documentElement.scrollTop;
+
+            if (scrollDist > 300) { 
+                // Se rolou mais de 300px, mostra o botão
+                // (Usamos 'grid' pois o CSS usa 'place-items: center')
+                btnTopo.style.display = "grid"; 
+            } else {
+                // Senão, esconde
+                btnTopo.style.display = "none";
+            }
+        });
+
+        // B. Lógica de CLICAR para subir suavemente
+        btnTopo.addEventListener("click", (e) => {
+            // Previne o "pulo" padrão do link href="#"
+            e.preventDefault(); 
+
+            // Manda a janela rolar para o topo
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth" // A mágica da rolagem suave!
+            });
         });
     }
 

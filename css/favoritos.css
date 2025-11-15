@@ -2,7 +2,7 @@
  * CSS específico para a página de Favoritos (favoritos.php)
  */
 
-/* 1. Título da Página (Reutilizado de produtos.css)
+/* 1. Título da Página
 --------------------------------------------------- */
 .titulo-pagina {
     font-size: 1.8rem;
@@ -11,7 +11,7 @@
     margin-bottom: 1.5rem;
 }
 
-/* 2. ***** NOVO: Estilo da "Lista Vazia" *****
+/* 2. Estilo da "Lista Vazia"
 --------------------------------------------------- */
 .lista-vazia {
     background-color: var(--cor-branca);
@@ -63,7 +63,7 @@
 }
 
 
-/* 3. Container da Grade (Reutilizado de produtos.css)
+/* 3. Container da Grade
 --------------------------------------------------- */
 .container-produtos {
     display: grid;
@@ -72,7 +72,7 @@
     justify-content: center;
 }
 
-/* 4. Card Individual (Reutilizado de produtos.css)
+/* 4. Card Individual
 --------------------------------------------------- */
 .card-produto {
     background-color: var(--cor-branca);
@@ -89,7 +89,7 @@
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 }
 
-/* 5. Imagem do Card (Reutilizado de produtos.css)
+/* 5. Imagem do Card
 --------------------------------------------------- */
 .card-produto-imagem {
     width: 100%;
@@ -104,7 +104,7 @@
     object-fit: cover;
 }
 
-/* 6. Informações do Card (Reutilizado de produtos.css)
+/* 6. Informações do Card 
 --------------------------------------------------- */
 .card-produto-info {
     padding: 1rem;
@@ -135,7 +135,7 @@
     color: var(--cor-principal);
 }
 
-/* 7. Ações do Card (Reutilizado de produtos.css)
+/* 7. Ações do Card
 --------------------------------------------------- */
 .card-produto-acoes {
     padding: 0 1rem 1rem 1rem;
@@ -144,7 +144,7 @@
     gap: 0.75rem;
 }
 
-/* 8. Formulário/Botão Orçamento (Reutilizado de produtos.css)
+/* 8. Formulário/Botão Orçamento
 --------------------------------------------------- */
 .form-orcamento {
     display: flex;
@@ -177,7 +177,7 @@
     background-color: var(--cor-principal-hover);
 }
 
-/* 9. ***** NOVO: Estilo do Botão "Remover" *****
+/* 9. Estilo do Botão "Remover"
 --------------------------------------------------- */
 .btn-remover-favorito {
     width: 100%;
@@ -198,4 +198,58 @@
 .btn-remover-favorito:hover {
     background-color: var(--cor-vermelho-sair-fundo);
     border-color: var(--cor-vermelho-sair);
+}
+
+
+/* 10. RESPONSIVIDADE (Mobile)
+--------------------------------------------------- */
+@media (max-width: 600px) {
+    
+    .titulo-pagina {
+        font-size: 1.5rem; /* Título um pouco menor */
+    }
+
+    .container-produtos {
+        /* A MÁGICA: Força 2 colunas e remove a regra de '280px' */
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem; /* Espaço menor entre os cards */
+    }
+
+    /* Ajustes finos para o card caber em telas pequenas */
+    .card-produto-info {
+        padding: 0.75rem;
+    }
+    
+    .card-produto-info h3 {
+        font-size: 0.9rem; /* Fonte menor */
+    }
+
+    .card-produto-info .preco {
+        font-size: 1.1rem; /* Preço menor */
+    }
+
+    .card-produto-acoes {
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+
+    /* * Ajustes nos botões 
+     * (Aplicando ao .btn-orcamento E ao .btn-remover-favorito) 
+     */
+    .btn-orcamento,
+    .btn-remover-favorito, 
+    .form-orcamento .input-quantidade {
+        padding: 8px;
+        font-size: 0.8rem;
+        gap: 4px;
+    }
+
+    .form-orcamento .input-quantidade {
+        width: 40px;
+    }
+
+    .btn-orcamento i,
+    .btn-remover-favorito i {
+        font-size: 0.9rem; /* Ícone menor */
+    }
 }

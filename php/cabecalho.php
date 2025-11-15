@@ -50,6 +50,10 @@ $primeiro_nome = explode(' ', $nome_usuario_logado)[0]; // Pega só "Carlos"
     </head>
     <body>
 
+        <a href="#" id="btn-voltar-ao-topo" class="btn-voltar-ao-topo" aria-label="Voltar ao topo">
+            <i class="fa-solid fa-arrow-up"></i>
+        </a>
+        
         <header class="cabecalho-container">
             <a href="produtos.php" class="logo-link">
                 <img src="../img/logotipo.jpg" alt="Logo Risco e Rabisco">
