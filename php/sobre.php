@@ -101,6 +101,10 @@
 
     <!-- 3. RODAPÉ PÚBLICO (HTML direto) -->
     <footer class="rodape-publico">
+        <p style="margin-bottom: 10px; font-size: 0.9rem; color: #ccc;">
+            <i class="fa-solid fa-code"></i>
+            Desenvolvido por: <strong>Luiz Augusto Leite Freitas</strong>
+        </p>
         <p>&copy; 2025 Risco e Rabisco - Projeto Senac</p>
     </footer>
 
