@@ -226,6 +226,77 @@
     }
 }
 
+/* 8. Tooltips CSS Puro
+--------------------------------------------------- */
+/* Define o elemento pai (o botão) como referência */
+.tooltip {
+    position: relative; 
+}
+
+/* O texto do tooltip (a caixinha preta) */
+.tooltip::before {
+    content: attr(data-tooltip); /* Pega o texto do atributo HTML data-tooltip */
+    position: absolute;
+    
+    /* Posicionamento: Acima do botão e centralizado */
+    bottom: 100%; 
+    left: 50%;
+    transform: translateX(-50%); 
+    
+    /* Estilo Visual */
+    background-color: #333; /* Fundo escuro */
+    color: #fff; /* Texto branco */
+    padding: 6px 10px; /* Espaçamento interno */
+    border-radius: 4px; /* Bordas arredondadas */
+    font-size: 0.75rem; /* Texto pequeno */
+    font-weight: 500;
+    white-space: nowrap; /* Impede que o texto quebre linha */
+    
+    /* Animação e Visibilidade (Invisível por padrão) */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none; /* O mouse ignora ele (não atrapalha o clique) */
+    
+    margin-bottom: 8px; /* Espaço entre o botão e o tooltip */
+    z-index: 10; /* Garante que fique por cima de tudo */
+}
+
+/* A setinha do tooltip (o triângulo) */
+.tooltip::after {
+    content: '';
+    position: absolute;
+    
+    /* Posicionamento: Logo abaixo do texto */
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    /* Criação do triângulo com bordas */
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent; /* Triângulo apontando pra baixo */
+    
+    /* Animação e Visibilidade */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease;
+    
+    margin-bottom: -2px; /* Ajuste fino para colar no botão */
+}
+
+/* Regra de Ativação: Mostrar ao passar o mouse (:hover) */
+.tooltip:hover::before,
+.tooltip:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Efeito extra: O texto sobe um pouquinho quando aparece */
+.tooltip:hover::before {
+    transform: translateX(-50%) translateY(-3px);
+}
+
 /* * NOVA SEÇÃO RESPONSIVA PARA CELULAR
  * Substitui a rolagem horizontal por um layout de card empilhado.
  */
