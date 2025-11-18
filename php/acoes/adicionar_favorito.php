@@ -1,12 +1,33 @@
 <?php
 // 1. INICIAR SESSÃO E CONEXÃO
 session_start();
-require_once '../conexao.php'; // Estamos na pasta 'acoes', então é ../conexao.php
+require_once '../conexao.php';
+
+// Função auxiliar para responder (seja JSON ou Redirecionamento)
+function responder($sucesso, $mensagem, $redirect_url, $is_ajax) {
+    if ($is_ajax) {
+        // Se for AJAX, retorna JSON e para o script
+        header('Content-Type: application/json');
+        echo json_encode(['sucesso' => $sucesso, 'mensagem' => $mensagem]);
+        exit();
+    } else {
+        // Se for formulário normal, redireciona
+        header("Location: " . $redirect_url);
+        exit();
+    }
+}
+
+// Verifica se a requisição é AJAX (pelo parâmetro POST 'ajax' ou cabeçalho)
+$is_ajax = isset($_POST['ajax']) && $_POST['ajax'] == '1';
 
 // 2. SEGURANÇA (O "PORTEIRO")
 if (!isset($_SESSION['logado']) || $_SESSION['logado'] !== true) {
-    header("Location: ../login.php?erro=restrito");
-    exit();
+    if ($is_ajax) {
+        responder(false, "Você precisa estar logado.", "", true);
+    } else {
+        header("Location: ../login.php?erro=restrito");
+        exit();
+    }
 }
 
 // 3. VERIFICAR SE O MÉTODO É POST E SE O ID VEIO
@@ -15,60 +36,65 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['id_produto'])) {
     // 4. COLETAR DADOS
     $id_usuario = $_SESSION['id_usuario'];
     $id_produto = (int)$_POST['id_produto'];
-    
-    // O "TRUQUE": Verificamos se a 'acao' foi enviada.
-    // Se foi (ex: "remover"), usamos ela.
-    // Se não, o padrão é "adicionar".
     $acao = $_POST['acao'] ?? 'adicionar';
 
     // 5. LÓGICA DE ADICIONAR/REMOVER
-    
     try {
-        
         if ($acao == 'remover') {
-            // --- LÓGICA DE REMOÇÃO ---
+            // --- REMOÇÃO ---
             $stmt_exec = $conn->prepare("DELETE FROM favoritos WHERE id_usuario = ? AND id_produto = ?");
-            // "ii" -> dois inteiros
-            $stmt_exec->bind_param("ii", $id_usuario, $id_produto); 
-            $redirect_url = "../favoritos.php?sucesso=removido"; // Redireciona para favoritos
+            $stmt_exec->bind_param("ii", $id_usuario, $id_produto);
+            $stmt_exec->execute();
+            
+            responder(true, "Produto removido dos favoritos.", "../favoritos.php?sucesso=removido", $is_ajax);
 
         } else {
-            // --- LÓGICA DE ADIÇÃO ---
-            $stmt_exec = $conn->prepare("INSERT IGNORE INTO favoritos (id_usuario, id_produto) VALUES (?, ?)");
+            // --- ADIÇÃO (TOGGLE) ---
+            // Para a Home, vamos fazer um "toggle" inteligente:
+            // Se já existe, remove. Se não existe, adiciona.
             
-            // ***** O ERRO ESTAVA AQUI *****
-            // Corrigido de "iii" para "ii" (pois são 2 variáveis)
-            $stmt_exec->bind_param("ii", $id_usuario, $id_produto); 
-            // ***** FIM DA CORREÇÃO *****
+            // Primeiro verificamos se já existe
+            $check = $conn->prepare("SELECT id FROM favoritos WHERE id_usuario = ? AND id_produto = ?");
+            $check->bind_param("ii", $id_usuario, $id_produto);
+            $check->execute();
+            $check->store_result();
 
-            $redirect_url = "../produtos.php?sucesso=favorito"; // Redireciona para produtos
+            if ($check->num_rows > 0) {
+                // Já existe -> Removemos
+                $stmt_exec = $conn->prepare("DELETE FROM favoritos WHERE id_usuario = ? AND id_produto = ?");
+                $stmt_exec->bind_param("ii", $id_usuario, $id_produto);
+                $stmt_exec->execute();
+                $msg = "Produto removido dos favoritos.";
+                $status = "removido";
+            } else {
+                // Não existe -> Adicionamos
+                $stmt_exec = $conn->prepare("INSERT INTO favoritos (id_usuario, id_produto) VALUES (?, ?)");
+                $stmt_exec->bind_param("ii", $id_usuario, $id_produto);
+                $stmt_exec->execute();
+                $msg = "Produto adicionado aos favoritos.";
+                $status = "adicionado";
+            }
+            
+            responder(true, $msg, "../produtos.php?sucesso=" . $status, $is_ajax);
         }
 
-        // Executa o SQL (DELETE ou INSERT IGNORE)
-        $stmt_exec->execute();
-        $stmt_exec->close();
         $conn->close();
 
-        // 6. REDIRECIONAR DE VOLTA (SUCESSO)
-        header("Location: " . $redirect_url);
-        exit();
-
     } catch (mysqli_sql_exception $e) {
-        // 7. "CAPTURAR" ERRO (Sessão inválida ou outro)
-        if ($e->getCode() == 1452) { // Erro de Foreign Key (Sessão inválida)
-            session_unset();
-            session_destroy();
-            header("Location: ../login.php?erro=sessao_invalida");
-            exit();
+        // Tratamento de erro
+        if ($e->getCode() == 1452) {
+            session_unset(); session_destroy();
+            if ($is_ajax) {
+                responder(false, "Sessão inválida.", "", true);
+            } else {
+                header("Location: ../login.php?erro=sessao_invalida");
+            }
         } else {
-            // Outro erro de BD
-            header("Location: ../produtos.php?erro=bd");
-            exit();
+            responder(false, "Erro no banco de dados.", "../produtos.php?erro=bd", $is_ajax);
         }
     }
 
 } else {
-    // Se alguém acessar o arquivo sem dados POST
     header("Location: ../produtos.php");
     exit();
 }

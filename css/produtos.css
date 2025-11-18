@@ -115,18 +115,21 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
 }
+
 .btn-favorito:hover {
     background-color: #e9e9e9;
 }
-.btn-favorito:disabled {
-    background-color: var(--cor-cinza-fundo);
-    color: var(--cor-principal);
-    cursor: not-allowed;
+
+.btn-favorito.ativo {
+    background-color: #ffebee;
+    color: #d32f2f;
+    border-color: #d32f2f;
 }
-.btn-favorito:disabled i {
-    color: var(--cor-principal);
+
+.btn-favorito.ativo:hover {
+    background-color: #ffcdd2;
 }
 
 /* Formulário e Botão de Orçamento */
