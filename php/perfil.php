@@ -45,38 +45,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $nova_senha = $_POST['nova_senha'];
         $confirma_senha = $_POST['confirma_senha'];
 
+        // Validação Regex para senha forte
+        $tem_maiuscula = preg_match('@[A-Z]@', $nova_senha);
+        $tem_minuscula = preg_match('@[a-z]@', $nova_senha);
+        $tem_numero    = preg_match('@[0-9]@', $nova_senha);
+        $tem_especial  = preg_match('@[^\w]@', $nova_senha);
+
         // 1. Validar campos
         if (empty($senha_atual) || empty($nova_senha) || empty($confirma_senha)) {
             $mensagem_erro_senha = "Todos os campos de senha são obrigatórios.";
         } elseif ($nova_senha !== $confirma_senha) {
             $mensagem_erro_senha = "As novas senhas não coincidem.";
-        } elseif (strlen($nova_senha) < 6) {
-            $mensagem_erro_senha = "A nova senha deve ter pelo menos 6 caracteres.";
+        } elseif (strlen($nova_senha) < 8 || !$tem_maiuscula || !$tem_minuscula || !$tem_especial) {
+            $mensagem_erro_senha = "A nova senha não atende aos requisitos de segurança.";
         } else {
             // 2. Buscar a senha atual no banco para verificar
-            // ***** CORREÇÃO: Usamos uma variável diferente ($usuario_senha) *****
             $stmt_verificar = $conn->prepare("SELECT senha FROM usuarios WHERE id = ?");
             $stmt_verificar->bind_param("i", $id_usuario_logado);
             $stmt_verificar->execute();
             $resultado_senha = $stmt_verificar->get_result();
             $usuario_senha = $resultado_senha->fetch_assoc();
-            $hash_senha_atual = $usuario_senha['senha'];
+            $hash_senha_atual_db = $usuario_senha['senha']; // Nome mais claro
             $stmt_verificar->close();
 
             // 3. Verificar se a "Senha Atual" digitada bate com a do banco
-            if (password_verify($senha_atual, $hash_senha_atual)) {
-                // 4. Se bateu, criptografa e atualiza a nova senha
-                $novo_hash_senha = password_hash($nova_senha, PASSWORD_DEFAULT);
+            if (password_verify($senha_atual, $hash_senha_atual_db)) {
                 
-                $stmt_senha = $conn->prepare("UPDATE usuarios SET senha = ? WHERE id = ?");
-                $stmt_senha->bind_param("si", $novo_hash_senha, $id_usuario_logado);
-                
-                if ($stmt_senha->execute()) {
-                    $mensagem_sucesso = "Senha alterada com sucesso!";
+                // Verificar se a nova senha é igual à atual
+                if (password_verify($nova_senha, $hash_senha_atual_db)) {
+                    $mensagem_erro_senha = "A nova senha não pode ser igual à senha atual.";
                 } else {
-                    $mensagem_erro_senha = "Erro ao alterar a senha. Tente novamente.";
+                    // 4. Se tudo certo, criptografa e atualiza
+                    $novo_hash_senha = password_hash($nova_senha, PASSWORD_DEFAULT);
+                    
+                    $stmt_senha = $conn->prepare("UPDATE usuarios SET senha = ? WHERE id = ?");
+                    $stmt_senha->bind_param("si", $novo_hash_senha, $id_usuario_logado);
+                    
+                    if ($stmt_senha->execute()) {
+                        $mensagem_sucesso = "Senha alterada com sucesso!";
+                    } else {
+                        $mensagem_erro_senha = "Erro ao alterar a senha. Tente novamente.";
+                    }
+                    $stmt_senha->close();
                 }
-                $stmt_senha->close();
                 
             } else {
                 // Se a senha atual não bateu
@@ -88,13 +99,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 // 4. BUSCAR DADOS ATUAIS PARA EXIBIR (LÓGICA GET)
-// ***** CORREÇÃO: Esta lógica agora roda *sempre* *****
-// Seja GET ou POST, nós *sempre* precisamos dos dados para preencher o formulário.
 $stmt_get = $conn->prepare("SELECT nome, email, data_cadastro FROM usuarios WHERE id = ?");
 $stmt_get->bind_param("i", $id_usuario_logado);
 $stmt_get->execute();
 $resultado = $stmt_get->get_result();
-$usuario = $resultado->fetch_assoc(); // Agora $usuario SEMPRE terá nome, email e data.
+$usuario = $resultado->fetch_assoc();
 $stmt_get->close();
 
 // Fechamos a conexão
@@ -149,7 +158,24 @@ $conn->close();
 
             <div class="form-group">
                 <label for="nova_senha">Nova Senha</label>
-                <input type="password" id="nova_senha" name="nova_senha" required>
+                <!-- ID para o JS pegar -->
+                <input type="password" id="nova_senha" class="senha-verifica" name="nova_senha" required>
+                
+                <!-- Checklist Visual -->
+                <div class="requisitos-senha" id="box-requisitos">
+                    <div class="requisito-item" id="req-tamanho">
+                        <i class="fa-solid fa-circle-xmark"></i> Mínimo 8 caracteres
+                    </div>
+                    <div class="requisito-item" id="req-maiuscula">
+                        <i class="fa-solid fa-circle-xmark"></i> Letra Maiúscula
+                    </div>
+                    <div class="requisito-item" id="req-minuscula">
+                        <i class="fa-solid fa-circle-xmark"></i> Letra Minúscula
+                    </div>
+                    <div class="requisito-item" id="req-especial">
+                        <i class="fa-solid fa-circle-xmark"></i> Caractere Especial (!@#$)
+                    </div>
+                </div>
             </div>
 
             <div class="form-group">
@@ -171,12 +197,14 @@ $conn->close();
             const msgSucesso = document.getElementById('msg-sucesso');
             if (msgSucesso) {
                 msgSucesso.style.opacity = '0';
-                // Remove o elemento após a animação de fade-out
                 setTimeout(() => msgSucesso.remove(), 500);
             }
-        }, 3000); // 3 segundos
+        }, 3000);
     </script>
 <?php endif; ?>
+
+<!-- Script de Validação Visual -->
+<script src="../js/registrar.js"></script>
 
 <?php
 // 5. Fechamento do HTML
