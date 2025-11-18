@@ -127,6 +127,9 @@ $conn->close(); // Fechamos a conexão aqui, pois já pegamos os dados
         </div> <?php endif; ?> </div> <?php
 // 7. Fechamento do HTML
 ?>
+
+<script src="../js/confirmacoes.js"></script>
+
 </main>
 </body>
 </html>

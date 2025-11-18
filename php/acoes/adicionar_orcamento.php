@@ -3,21 +3,26 @@
 session_start();
 require_once '../conexao.php';
 
-$is_ajax = isset($_POST['ajax']) && $_POST['ajax'] == '1';
-
 // Função auxiliar para responder
 function responder($sucesso, $mensagem, $dados_extras = [], $is_ajax) {
     if ($is_ajax) {
         header('Content-Type: application/json');
-        // Junta os dados básicos com os extras (quantidades)
         $resposta = array_merge(['sucesso' => $sucesso, 'mensagem' => $mensagem], $dados_extras);
         echo json_encode($resposta);
         exit();
     } else {
-        header("Location: ../orcamento.php?sucesso=add");
+        // Se sucesso, redireciona com msg de sucesso
+        if ($sucesso) {
+            header("Location: ../orcamento.php?sucesso=add");
+        } else {
+            // Se erro, redireciona com msg de erro (você pode tratar isso no front depois)
+            header("Location: ../produtos.php?erro=" . urlencode($mensagem));
+        }
         exit();
     }
 }
+
+$is_ajax = isset($_POST['ajax']) && $_POST['ajax'] == '1';
 
 // 2. SEGURANÇA
 if (!isset($_SESSION['logado']) || $_SESSION['logado'] !== true) {
@@ -36,8 +41,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['id_produto'])) {
 
     $id_usuario = $_SESSION['id_usuario'];
     $id_produto = (int)$_POST['id_produto'];
+    // Pega a quantidade, se não vier, assume 1
     $qtd_add = (int)($_POST['quantidade'] ?? 1);
-    if ($qtd_add < 1) $qtd_add = 1;
+
+    // ***** VALIDAÇÃO: Se quantidade for menor que 1, PARE *****
+    if ($qtd_add < 1) {
+        responder(false, "A quantidade mínima é 1.", [], $is_ajax);
+        exit(); // Garante que o script pare aqui
+    }
 
     try {
         // --- PASSO 1: INSERIR OU ATUALIZAR ---
@@ -69,7 +80,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['id_produto'])) {
         // --- PASSO 2: CALCULAR DADOS PARA O FRONTEND ---
 
         // A. Quantidade total deste produto específico (para atualizar o botão do card)
-        // (Buscamos de novo para garantir que temos o valor real do banco)
         $q_esp = $conn->prepare("SELECT quantidade FROM orcamento_itens WHERE id_usuario = ? AND id_produto = ?");
         $q_esp->bind_param("ii", $id_usuario, $id_produto);
         $q_esp->execute();
