@@ -27,6 +27,23 @@ $id_usuario_logado = $_SESSION['id_usuario'];
 $nome_usuario_logado = $_SESSION['nome_usuario']; // Ex: "Carlos"
 $primeiro_nome = explode(' ', $nome_usuario_logado)[0]; // Pega só "Carlos"
 
+// 4. CALCULAR TOTAL DE PRODUTOS NO ORÇAMENTO
+$total_produtos = 0;
+if (isset($conn)) {
+    // Usamos COUNT(id_produto) para contar o total de produtos
+    $sql_contagem = "SELECT COUNT(id_produto) as total FROM orcamento_itens WHERE id_usuario = ?";
+    $stmt_contagem = $conn->prepare($sql_contagem);
+    if ($stmt_contagem) {
+        $stmt_contagem->bind_param("i", $id_usuario_logado);
+        $stmt_contagem->execute();
+        $res_contagem = $stmt_contagem->get_result();
+        if ($row_contagem = $res_contagem->fetch_assoc()) {
+            // Se retornar null (sem itens), define como 0
+            $total_produtos = $row_contagem['total'] ?? 0;
+        }
+        $stmt_contagem->close();
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -71,6 +88,12 @@ $primeiro_nome = explode(' ', $nome_usuario_logado)[0]; // Pega só "Carlos"
                     </a>
                     <a href="orcamento.php">
                         <i class="fa-solid fa-file-invoice-dollar"></i> Orçamento
+                        
+                        <?php if ($total_produtos > 0): ?>
+                            <span id="contador-orcamento" class="badge-contador"><?php echo $total_produtos; ?></span>
+                        <?php else: ?>
+                            <span id="contador-orcamento" class="badge-contador" style="display: none;">0</span>
+                        <?php endif; ?>
                     </a>
                 </nav>
 

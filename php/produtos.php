@@ -58,15 +58,11 @@ $stmt_carrinho->close();
             $preco_produto = "R$ " . number_format($produto['preco'], 2, ',', '.');
             $imagem_produto = htmlspecialchars($produto['imagem']);
 
-            // Verifica status
             $esta_favoritado = isset($favoritos_set[$id_produto]);
             $no_carrinho_qtd = $carrinho_set[$id_produto] ?? 0;
             
-            // Define o ícone inicial (cheio ou vazio)
             $classe_icone = $esta_favoritado ? 'fa-solid' : 'fa-regular';
-            // Define o texto do botão
             $texto_botao = $esta_favoritado ? 'Já Favoritado' : 'Favoritar';
-            // Define a classe 'ativo' para o botão se já estiver favoritado
             $classe_ativo = $esta_favoritado ? 'ativo' : '';
 
             ?>
@@ -96,20 +92,30 @@ $stmt_carrinho->close();
                         <i class="<?php echo $classe_icone; ?> fa-heart"></i> 
                         <span class="texto-favorito"><?php echo $texto_botao; ?></span>
                     </button>
-                    <form action="acoes/adicionar_orcamento.php" method="POST" class="form-orcamento">
-                        <input type="hidden" name="id_produto" value="<?php echo $id_produto; ?>">
-                        <input type="number" name="quantidade" value="1" min="1" max="99" class="input-quantidade">
-                        
-                        <button type="submit" class="btn-orcamento">
-                            <?php if ($no_carrinho_qtd > 0): ?>
-                                <i class="fa-solid fa-cart-plus"></i> Adicionar + (<?php echo $no_carrinho_qtd; ?>)
-                            <?php else: ?>
-                                <i class="fa-solid fa-cart-shopping"></i> Orçar
-                            <?php endif; ?>
-                        </button>
-                    </form>
 
-                </div>
+                    <div class="form-orcamento">
+                        <input type="number" 
+                               id="qtd-<?php echo $id_produto; ?>" 
+                               value="1" 
+                               min="1" 
+                               max="99" 
+                               class="input-quantidade">
+                        
+                        <button type="button" 
+                                class="btn-orcamento"
+                                data-id="<?php echo $id_produto; ?>"
+                                onclick="adicionarAoOrcamento(this)">
+                            
+                            <span class="conteudo-btn">
+                                <?php if ($no_carrinho_qtd > 0): ?>
+                                    <i class="fa-solid fa-cart-plus"></i> Adicionar + (<?php echo $no_carrinho_qtd; ?>)
+                                <?php else: ?>
+                                    <i class="fa-solid fa-cart-shopping"></i> Orçar
+                                <?php endif; ?>
+                            </span>
+                        </button>
+                    </div>
+                    </div>
             </div>
 
             <?php

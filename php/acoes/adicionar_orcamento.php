@@ -1,82 +1,108 @@
 <?php
 // 1. INICIAR SESSÃO E CONEXÃO
 session_start();
-require_once '../conexao.php'; // Usamos ../ pois estamos dentro da pasta 'acoes'
+require_once '../conexao.php';
 
-// 2. SEGURANÇA (O "PORTEIRO")
-if (!isset($_SESSION['logado']) || $_SESSION['logado'] !== true) {
-    header("Location: ../login.php?erro=restrito");
-    exit();
-}
+$is_ajax = isset($_POST['ajax']) && $_POST['ajax'] == '1';
 
-// 3. VERIFICAR SE O MÉTODO É POST E SE OS DADOS VIERAM
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['id_produto'])) {
-
-    // 4. COLETAR E VALIDAR DADOS
-    $id_usuario = $_SESSION['id_usuario'];
-    $id_produto = (int)$_POST['id_produto'];
-    $quantidade_adicionar = (isset($_POST['quantidade']) && (int)$_POST['quantidade'] > 0) ? (int)$_POST['quantidade'] : 1;
-
-    // 5. LÓGICA DO ORÇAMENTO (COM TRATAMENTO DE ERRO)
-    
-    try {
-        // --- Início do bloco "Tentar" ---
-
-        // Primeiro, verificar se o usuário JÁ TEM esse item no orçamento
-        $stmt_verificar = $conn->prepare("SELECT quantidade FROM orcamento_itens WHERE id_usuario = ? AND id_produto = ?");
-        $stmt_verificar->bind_param("ii", $id_usuario, $id_produto);
-        $stmt_verificar->execute();
-        $resultado = $stmt_verificar->get_result();
-
-        if ($resultado->num_rows > 0) {
-            // --- SE JÁ EXISTE: ATUALIZAR (UPDATE) ---
-            $item_existente = $resultado->fetch_assoc();
-            $nova_quantidade = $item_existente['quantidade'] + $quantidade_adicionar;
-
-            $stmt_update = $conn->prepare("UPDATE orcamento_itens SET quantidade = ? WHERE id_usuario = ? AND id_produto = ?");
-            $stmt_update->bind_param("iii", $nova_quantidade, $id_usuario, $id_produto);
-            $stmt_update->execute();
-            $stmt_update->close();
-
-        } else {
-            // --- SE NÃO EXISTE: INSERIR (INSERT) ---
-            // É aqui que o erro de Foreign Key (sessão inválida) pode acontecer
-            $stmt_insert = $conn->prepare("INSERT INTO orcamento_itens (id_usuario, id_produto, quantidade) VALUES (?, ?, ?)");
-            $stmt_insert->bind_param("iii", $id_usuario, $id_produto, $quantidade_adicionar);
-            $stmt_insert->execute();
-            $stmt_insert->close();
-        }
-
-        $stmt_verificar->close();
-        $conn->close();
-
-        // 6. REDIRECIONAR O USUÁRIO (SUCESSO)
+// Função auxiliar para responder
+function responder($sucesso, $mensagem, $dados_extras = [], $is_ajax) {
+    if ($is_ajax) {
+        header('Content-Type: application/json');
+        // Junta os dados básicos com os extras (quantidades)
+        $resposta = array_merge(['sucesso' => $sucesso, 'mensagem' => $mensagem], $dados_extras);
+        echo json_encode($resposta);
+        exit();
+    } else {
         header("Location: ../orcamento.php?sucesso=add");
         exit();
+    }
+}
 
-        // --- Fim do bloco "Tentar" ---
+// 2. SEGURANÇA
+if (!isset($_SESSION['logado']) || $_SESSION['logado'] !== true) {
+    if ($is_ajax) {
+        header('Content-Type: application/json');
+        echo json_encode(['sucesso' => false, 'erro' => 'login_necessario']);
+        exit();
+    } else {
+        header("Location: ../login.php?erro=restrito");
+        exit();
+    }
+}
 
-    } catch (mysqli_sql_exception $e) {
-        // 7. "CAPTURAR" O ERRO FATAL DO MYSQL
-        // Se o erro for "foreign key constraint fails" (código 1452),
-        // é 99% de certeza que a sessão do usuário está dessincronizada.
+// 3. PROCESSAMENTO
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['id_produto'])) {
+
+    $id_usuario = $_SESSION['id_usuario'];
+    $id_produto = (int)$_POST['id_produto'];
+    $qtd_add = (int)($_POST['quantidade'] ?? 1);
+    if ($qtd_add < 1) $qtd_add = 1;
+
+    try {
+        // --- PASSO 1: INSERIR OU ATUALIZAR ---
         
-        if ($e->getCode() == 1452) {
-            // Ação amigável: Forçar logout e pedir novo login
-            session_unset();
-            session_destroy();
-            header("Location: ../login.php?erro=sessao_invalida");
+        // Verifica se já existe
+        $stmt = $conn->prepare("SELECT quantidade FROM orcamento_itens WHERE id_usuario = ? AND id_produto = ?");
+        $stmt->bind_param("ii", $id_usuario, $id_produto);
+        $stmt->execute();
+        $res = $stmt->get_result();
+
+        if ($res->num_rows > 0) {
+            // UPDATE
+            $row = $res->fetch_assoc();
+            $nova_qtd_bd = $row['quantidade'] + $qtd_add;
+            
+            $upd = $conn->prepare("UPDATE orcamento_itens SET quantidade = ? WHERE id_usuario = ? AND id_produto = ?");
+            $upd->bind_param("iii", $nova_qtd_bd, $id_usuario, $id_produto);
+            $upd->execute();
+            $upd->close();
+        } else {
+            // INSERT
+            $ins = $conn->prepare("INSERT INTO orcamento_itens (id_usuario, id_produto, quantidade) VALUES (?, ?, ?)");
+            $ins->bind_param("iii", $id_usuario, $id_produto, $qtd_add);
+            $ins->execute();
+            $ins->close();
+        }
+        $stmt->close();
+
+        // --- PASSO 2: CALCULAR DADOS PARA O FRONTEND ---
+
+        // A. Quantidade total deste produto específico (para atualizar o botão do card)
+        // (Buscamos de novo para garantir que temos o valor real do banco)
+        $q_esp = $conn->prepare("SELECT quantidade FROM orcamento_itens WHERE id_usuario = ? AND id_produto = ?");
+        $q_esp->bind_param("ii", $id_usuario, $id_produto);
+        $q_esp->execute();
+        $res_esp = $q_esp->get_result();
+        $row_esp = $res_esp->fetch_assoc();
+        $qtd_especifica = $row_esp['quantidade'] ?? 0;
+        $q_esp->close();
+
+        // B. Quantidade total do carrinho (para atualizar o cabeçalho)
+        $q_tot = $conn->prepare("SELECT COUNT(id_produto) as total FROM orcamento_itens WHERE id_usuario = ?");
+        $q_tot->bind_param("i", $id_usuario);
+        $q_tot->execute();
+        $res_tot = $q_tot->get_result();
+        $row_tot = $res_tot->fetch_assoc();
+        $qtd_total_carrinho = $row_tot['total'] ?? 0;
+        $q_tot->close();
+
+        // --- PASSO 3: RESPONDER ---
+        responder(true, "Adicionado!", [
+            'nova_qtd_produto' => $qtd_especifica,   // Atualiza o card
+            'nova_qtd_total'   => $qtd_total_carrinho // Atualiza o cabeçalho
+        ], $is_ajax);
+
+    } catch (Exception $e) {
+        if ($is_ajax) {
+            echo json_encode(['sucesso' => false, 'mensagem' => 'Erro no servidor']);
             exit();
         } else {
-            // Se for qualquer outro erro de SQL, mostra uma msg genérica
-            // (Idealmente, você registraria $e->getMessage() em um log de erros)
             header("Location: ../produtos.php?erro=bd");
             exit();
         }
     }
-
 } else {
-    // Se alguém tentar acessar este arquivo diretamente pela URL
     header("Location: ../produtos.php");
     exit();
 }

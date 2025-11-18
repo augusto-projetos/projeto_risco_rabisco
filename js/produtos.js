@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// Script AJAX para Favoritos
 async function alternarFavorito(botao) {
     const idProduto = botao.getAttribute('data-id');
     const icone = botao.querySelector('i');
@@ -94,5 +95,62 @@ async function alternarFavorito(botao) {
     } catch (error) {
         console.error('Erro:', error);
         // Reverte em caso de erro de rede
+    }
+}
+
+// Script AJAX para Orçamento
+async function adicionarAoOrcamento(botao) {
+    const idProduto = botao.getAttribute('data-id');
+    // Acha o input irmão dentro da div
+    const inputQtd = botao.parentElement.querySelector('.input-quantidade');
+    const quantidade = inputQtd.value;
+    const spanConteudo = botao.querySelector('.conteudo-btn');
+
+    // Feedback visual (Loading)
+    const textoOriginal = spanConteudo.innerHTML;
+    spanConteudo.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ...';
+    botao.disabled = true;
+
+    try {
+        const response = await fetch('acoes/adicionar_orcamento.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `id_produto=${idProduto}&quantidade=${quantidade}&ajax=1`
+        });
+        
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            // Atualiza o contador no cabeçalho (Se o PHP enviou nova_qtd_total)
+            const contador = document.getElementById('contador-orcamento');
+            if (contador && data.nova_qtd_total !== undefined) {
+                contador.textContent = data.nova_qtd_total;
+                contador.style.display = 'inline-flex';
+            }
+
+            // Atualiza o botão deste card com a quantidade específica
+            if (data.nova_qtd_produto !== undefined) {
+                    spanConteudo.innerHTML = `<i class="fa-solid fa-cart-plus"></i> Adicionar + (${data.nova_qtd_produto})`;
+            } else {
+                // Fallback se não vier a quantidade
+                spanConteudo.innerHTML = '<i class="fa-solid fa-check"></i> Adicionado!';
+                setTimeout(() => {
+                    spanConteudo.innerHTML = textoOriginal; // Volta ao original
+                }, 2000);
+            }
+            
+            botao.disabled = false;
+
+        } else {
+            alert('Erro: ' + (data.mensagem || data.erro));
+            spanConteudo.innerHTML = textoOriginal;
+            botao.disabled = false;
+        }
+
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro de conexão.');
+        spanConteudo.innerHTML = textoOriginal;
+        botao.disabled = false;
     }
 }
